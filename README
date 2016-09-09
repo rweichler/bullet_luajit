@@ -1,0 +1,35 @@
+uses bullet3-2.83.7
+requires https://github.com/rweichler/aite to build, i stripped out bullet's build system and most of bullet3, its just source files
+
+wrapper is in src/CAPI/wrapper.cpp
+ffi bindings in bullet.lua
+
+workflow for this library:
+
+basically you just write whatever functions you want to wrap in wrapper.cpp, and then put a slightly modified decl in bullet.lua
+
+so lets say you want to wrap:
+    bool btCollisionShape::isConvex()
+
+you would write it in C as:
+    bool btCollisionShape_isConvex(btCollisionShape *self){ ... }
+
+and you would put it in the ffi header in bullet.lua as:
+    bool btCollisionShape_isConvex(void *self);
+
+^ notice the void * for any bullet types for arguments. (NOTE: use the bullet type for return values)
+
+and the resulting lua code you'd write would be:
+    local is_convex = shape:isConvex()
+
+for metatable support for classes, add them to the `bt` table at the top of bullet.lua, remember to set the right superclass and stuff
+
+for creation functions do:
+    btBoxShape * btBoxShape_create(float *halfExtents);
+
+it has to have _create at the end.
+
+auto-generated lua code for that:
+    local shape = bullet.BoxShape(halfExtents)
+
+also i use regular float *'s for my vec3s, mat4s, etc so any function that returns a Vector3 or Quaternion or something i use as a pass-by-argument with just a float *
