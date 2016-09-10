@@ -4,6 +4,8 @@
 extern "C" {
 #endif
 
+// convenience functions
+
 #define VEC3(ptr) (ptr == NULL ? btVector3(0, 0, 0) : btVector3(ptr[0], ptr[1], ptr[2]))
 #define QUAT(ptr) (ptr == NULL ? btQuaternion(0, 0, 0, 1) : btQuaternion(ptr[0], ptr[1], ptr[2], ptr[3]))
 #define TRANSFORM(ang, pos) \
@@ -11,6 +13,21 @@ extern "C" {
         QUAT(ang),  \
         VEC3(pos)   \
     )
+
+static inline void get_transform(btTransform trans, float *ang, float *pos)
+{
+    btQuaternion q = trans.getRotation();
+    btVector3 v = trans.getOrigin();
+
+    ang[0] = q.x();
+    ang[1] = q.y();
+    ang[2] = q.z();
+    ang[3] = q.w();
+
+    pos[0] = v.x();
+    pos[1] = v.y();
+    pos[2] = v.z();
+}
 
 // world
 
@@ -89,15 +106,11 @@ btMotionState * btDefaultMotionState_create(float *ang, float *pos)
     return new btDefaultMotionState(TRANSFORM(ang, pos));
 }
 
-void btMotionState_getWorldTransform(btMotionState *self, float *matrix)
+void btMotionState_getWorldTransform(btMotionState *self, float *ang, float *pos)
 {
     btTransform trans;
     self->getWorldTransform(trans);
-    btScalar m[16];
-    trans.getOpenGLMatrix(m);
-    for(int i = 0; i < 16; i++) {
-        matrix[i] = m[i];
-    }
+    get_transform(trans, ang, pos);
 }
 
 // rigid body
@@ -127,7 +140,7 @@ btTriangleIndexVertexArray * btTriangleIndexVertexArray_create( int numTriangles
     for(int i = 0; i < numVertices * vertexStride; i++) {
         v[i] = vertices[i];
     }
-    return new btTriangleIndexVertexArray(numTriangles, triangles, triangleStride * sizeof(int), numVertices, v, vertexStride * sizeof(btScalar));
+    return new btTriangleIndexVertexArray(numTriangles, triangles, triangleStride, numVertices, v, vertexStride);
 }
 
 #ifdef __cplusplus

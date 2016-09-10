@@ -1,6 +1,6 @@
 local ffi = require 'ffi'
 
-local lib = ffi.load('bullet.dylib')
+local lib = ffi.load('bullet.so')
 
 -- grunt work
 
@@ -32,7 +32,7 @@ local defs = {
 'btBoxShape * btBoxShape_create(float *halfExtents);',
 'void btCollisionShape_calculateLocalInertia(void *btCollisionShape, float mass, float *inertia);',
 'btDefaultMotionState * btDefaultMotionState_create(float *ang, float *pos);',
-'void btMotionState_getWorldTransform(void *btMotionState, float *matrix);',
+'void btMotionState_getWorldTransform(void *btMotionState, float *ang, float *pos);',
 'btRigidBody * btRigidBody_create(float mass, void *btMotionState, void *btCollisionShape, float *localInertia);',
 'btMotionState * btRigidBody_getMotionState(void *btRigidBody);',
 'void btBoxShape_getHalfExtentsWithoutMargin(void *btBoxShape, float *halfExtents);',

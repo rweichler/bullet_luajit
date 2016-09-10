@@ -1,8 +1,10 @@
+NOTE: this is *not* a full ffi binding for bullet. since it is written in C++ instead of C, i need to manually wrap each method in C. it's a huge work in progress.
+
 uses bullet3-2.83.7
 requires https://github.com/rweichler/aite to build, i stripped out bullet's build system and most of bullet3, its just source files
 
-wrapper is in src/CAPI/wrapper.cpp
-ffi bindings in bullet.lua
+C wrapper is in src/CAPI/wrapper.cpp
+luajit ffi bindings in bullet.lua
 
 workflow for this library:
 
