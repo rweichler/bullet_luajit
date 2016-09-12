@@ -11,12 +11,13 @@ function default()
     }
     b.src = table.merge(
         fs.scandir('src/*/*.cpp'),
-        fs.scandir('src/*/*/*.cpp')
+        fs.scandir('src/*/*/*.cpp'),
+        'bullet_wrapper.cpp'
     )
-    b.output = 'build/bullet.so'
+    b.output = 'bullet.so'
     b:link(b:compile())
 end
 
 function clean()
-    os.pexecute('rm -rf build')
+    os.pexecute('rm -rf build bullet.so')
 end

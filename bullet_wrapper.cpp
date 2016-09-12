@@ -14,26 +14,36 @@ extern "C" {
         VEC3(pos)   \
     )
 
-static inline void get_transform(btTransform trans, float *ang, float *pos)
+static inline void GET_VEC3(btVector3 v, float *out)
 {
-    btQuaternion q = trans.getRotation();
-    btVector3 v = trans.getOrigin();
+    if(out != NULL) {
+        out[0] = v.x();
+        out[1] = v.y();
+        out[2] = v.z();
+    }
+}
 
-    ang[0] = q.x();
-    ang[1] = q.y();
-    ang[2] = q.z();
-    ang[3] = q.w();
+static inline void GET_QUAT(btQuaternion q, float *out)
+{
+    if(out != NULL) {
+        out[0] = q.x();
+        out[1] = q.y();
+        out[2] = q.z();
+        out[3] = q.w();
+    }
+}
 
-    pos[0] = v.x();
-    pos[1] = v.y();
-    pos[2] = v.z();
+static inline void GET_TRANSFORM(btTransform trans, float *ang, float *pos)
+{
+    GET_QUAT(trans.getRotation(), ang);
+    GET_VEC3(trans.getOrigin(), pos);
 }
 
 // world
 
 btDiscreteDynamicsWorld * btDiscreteDynamicsWorld_create()
 {
-    // TODO memory leaks
+    // TODO memory leak
     btBroadphaseInterface* broadphase = new btDbvtBroadphase();
 
     btDefaultCollisionConfiguration* collisionConfiguration = new btDefaultCollisionConfiguration();
@@ -44,19 +54,41 @@ btDiscreteDynamicsWorld * btDiscreteDynamicsWorld_create()
     return new btDiscreteDynamicsWorld(dispatcher, broadphase, solver, collisionConfiguration);
 }
 
-void btDiscreteDynamicsWorld_setGravity(btDiscreteDynamicsWorld *self, float *gravity)
+void btDynamicsWorld_setGravity(btDynamicsWorld *self, float *gravity)
 {
     self->setGravity(VEC3(gravity));
 }
 
-void btDiscreteDynamicsWorld_addRigidBody(btDiscreteDynamicsWorld *self, btRigidBody *body)
+void btDynamicsWorld_addRigidBody(btDynamicsWorld *self, btRigidBody *body)
 {
     self->addRigidBody(body);
 }
 
-int btDiscreteDynamicsWorld_stepSimulation(btDiscreteDynamicsWorld *self, float timeStep, int maxSubSteps)
+void btDynamicsWorld_removeRigidBody(btDynamicsWorld *self, btRigidBody *body)
+{
+    self->removeRigidBody(body);
+}
+
+int btDynamicsWorld_stepSimulation(btDynamicsWorld *self, float timeStep, int maxSubSteps)
 {
     return self->stepSimulation(timeStep, maxSubSteps);
+}
+
+const btCollisionObject * btCollisionWorld_rayTest(btCollisionWorld *self, float *from, float *to, float *out_closestHitFraction)
+{
+    btVector3 fromV = VEC3(from);
+    btVector3 toV = VEC3(to);
+    btCollisionWorld::ClosestRayResultCallback ray(fromV, toV);
+
+    self->rayTest(fromV, toV, ray);
+    if(ray.hasHit()) {
+        if(out_closestHitFraction != NULL) {
+            out_closestHitFraction[0] = ray.m_closestHitFraction;
+        }
+        return ray.m_collisionObject;
+    } else {
+        return NULL;
+    }
 }
 
 // collision shapes
@@ -83,20 +115,14 @@ const char * btCollisionShape_getName(btCollisionShape *self)
 
 void btCollisionShape_calculateLocalInertia(btCollisionShape *self, float mass, float *inertia)
 {
-    assert(inertia != NULL);
-    btVector3 tmp(inertia[0], inertia[1], inertia[2]);
+    btVector3 tmp = VEC3(inertia);
     self->calculateLocalInertia(mass, tmp);
-    inertia[0] = tmp.x();
-    inertia[1] = tmp.y();
-    inertia[2] = tmp.z();
+    GET_VEC3(tmp, inertia);
 }
 
 void btBoxShape_getHalfExtentsWithoutMargin(btBoxShape *self, float *halfExtents)
 {
-    btVector3 vec = self->getHalfExtentsWithoutMargin();
-    halfExtents[0] = vec.x();
-    halfExtents[1] = vec.y();
-    halfExtents[2] = vec.z();
+    GET_VEC3(self->getHalfExtentsWithoutMargin(), halfExtents);
 }
 
 // motion state ???
@@ -110,7 +136,12 @@ void btMotionState_getWorldTransform(btMotionState *self, float *ang, float *pos
 {
     btTransform trans;
     self->getWorldTransform(trans);
-    get_transform(trans, ang, pos);
+    GET_TRANSFORM(trans, ang, pos);
+}
+
+void btMotionState_setWorldTransform(btMotionState *self, float *ang, float *pos)
+{
+    self->setWorldTransform(TRANSFORM(ang, pos));
 }
 
 // rigid body
@@ -131,11 +162,43 @@ btCollisionShape * btRigidBody_getCollisionShape(btRigidBody *self)
     return self->getCollisionShape();
 }
 
+void btRigidBody_getCenterOfMassTransform(btRigidBody *self, float *ang, float *pos)
+{
+    btTransform transform = self->getCenterOfMassTransform();
+    GET_TRANSFORM(transform, ang, pos);
+}
+
+void btRigidBody_setCenterOfMassTransform(btRigidBody *self, float *ang, float *pos)
+{
+    self->setCenterOfMassTransform(TRANSFORM(ang, pos));
+}
+
+void btRigidBody_applyCentralImpulse(btRigidBody *self, float *impulse)
+{
+    self->applyCentralImpulse(VEC3(impulse));
+}
+
+void btRigidBody_applyCentralForce(btRigidBody *self, float *force)
+{
+    self->applyCentralForce(VEC3(force));
+}
+
+float btRigidBody_getInvMass(btRigidBody *self)
+{
+    return self->getInvMass();
+}
+
+void btCollisionObject_activate(btCollisionObject *self, bool forceActivation)
+{
+    self->activate(forceActivation);
+}
+
 // btTriangleIndexVertexArray
 
 btTriangleIndexVertexArray * btTriangleIndexVertexArray_create( int numTriangles, int *triangles, int triangleStride,
                                                                 int numVertices, float *vertices, int vertexStride)
 {
+    // TODO memory leak
     btScalar *v = (btScalar *)malloc(sizeof(btScalar) * numVertices * vertexStride);
     for(int i = 0; i < numVertices * vertexStride; i++) {
         v[i] = vertices[i];
