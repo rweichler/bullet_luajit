@@ -6,19 +6,19 @@ i stripped out the build system and most of bullet3, because i need a unified sh
 
 ## How to build
 
-1. Clone [aite](https://github.com/rweichler/aite) and put it somewhere
+1: Clone [aite](https://github.com/rweichler/aite) and put it somewhere
 
 ```
 git clone https://github.com/rweichler/aite.git
 ```
 
-2. Clone this and put it somewhere
+2: Clone this and put it somewhere
 
 ```
 git clone https://github.com/rweichler/bullet_luajit.git
 ```
 
-3. cd into this repo and run aite
+3: cd into this repo and run aite
 
 ```
 cd bullet_luajit
@@ -38,36 +38,58 @@ basically you just write whatever functions you want to wrap in wrapper.cpp, and
 
 Honestly, if you want good examples, just look at bullet\_wrapper.cpp and bullet.lua. But if you need more explanation then here you go:
 
+These are the three functions
+
 ```cpp
 bool btCollisionShape::isConvex();
 void btDynamicsWorld::removeRigidBody(btRigidBody *body);
 btMotionState * btRigidBody::getMotionState();
+btTransform btRigidBody::getCenterOfMassTransform();
 ```
 
 you would write it in C as:
 ```c
-bool btCollisionShape_isConvex(btCollisionShape *self){ ... }
-void btDynamicsWorld_removeRigidBody(btDynamicsWorld *self, btRigidBody *body){ ... }
-btMotionState * btRigidBody_getMotionState(btRigidBody *self){ ... }
+bool btCollisionShape_isConvex(btCollisionShape *self) {
+    return self->isConvex();
+}
+void btDynamicsWorld_removeRigidBody(btDynamicsWorld *self, btRigidBody *body){
+    self->removeRigidBody(body);
+}
+btMotionState * btRigidBody_getMotionState(btRigidBody *self){
+    return self->getMotionState();
+}
+void btRigidBody_getCenterOfMassTransform(btRigidBody *self, float *ang, float *pos)
+{
+    btTransform transform = self->getCenterOfMassTransform();
+    GET_TRANSFORM(transform, ang, pos);
+}
 ```
+
+Note how, in the third one, I didn't return the btTransform. Implementing C *and* LuaJIT bindings for Bullet's math library would be a pain, so I just use simple `float *`'s.
 
 and you would put it in bullet.lua as:
 ```c
 bool btCollisionShape_isConvex(void *self);
 void btDynamicsWorld_removeRigidBody(void *self, btRigidBody *body);
 btMotionState * btRigidBody_getMotionState(void *self);
+void btRigidBody_getMotionState(void *self, float *ang, float *pos);
 ```
 
-^ notice the difference: make self's type `void *`.
+^ notice the difference: self's type is now `void *`.
 
 and the resulting lua call would look like
 ```lua
+-- btCollisionShape::isConvex
 local is_convex = shape:isConvex()
+-- btDynamicsWorld::removeRigidBody
 dynamics_world:removeRigidBody(body)
+-- btRigidBody::getMotionState
 local motion_state = body:getMotionState()
+-- btRigidBody::getCenterOfMassTransform
+local ang = ffi.new('float[3]')
+local pos = ffi.new('float[3]')
+body:getCenterOfMassTransform(ang, pos)
 ```
-
-MAKE SURE THE CLASSES YOU USE ARE DEFINED AT THE TOP OF `bullet.lua`! And set the right superclass if you want to inherit methods.
 
 ## Constructor example
 
@@ -78,7 +100,10 @@ btBoxShape *shape = new btBoxShape(halfExtents);
 
 write this in bullet\_wrapper.cpp:
 ```c
-btBoxShape * btBoxShape_create(float *halfExtents){ ... }
+btBoxShape * btBoxShape_create(float *halfExtents) {
+    btVector3 tmp = VEC3(halfExtents);
+    return new btBoxShape(tmp);
+}
 ```
 
 and this in bullet.lua:
@@ -86,7 +111,7 @@ and this in bullet.lua:
 btBoxShape * btBoxShape_create(float *halfExtents);
 ```
 
-it has to have _create at the end.
+note: it has to have _create at the end.
 
 Then, you'll have to define the class at the top:
 ```lua
@@ -100,7 +125,6 @@ bt.BoxShape = {
 And you'd actually call that in Lua like:
 ```lua
 local bullet = require 'bullet'
+local halfExtents = ffi.new('float[3]', 2, 2, 2)
 local shape = bullet.BoxShape(halfExtents)
 ```
-
-also i use regular float *'s for my vec3s, mat4s, etc so any function that returns a Vector3 or Quaternion or something i use as a pass-by-argument with just a float *
