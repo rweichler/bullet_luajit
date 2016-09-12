@@ -25,9 +25,11 @@ cd bullet_luajit
 /PATH/TO/AITE/main.lua
 ```
 
+This will create a file bullet.so that you can use in conjunction with bullet.lua in your project.
+
 ## How to expand this
 
-* C wrapper is in bullet_wrapper.cpp
+* C wrapper is in bullet\_wrapper.cpp
 * luajit ffi bindings in bullet.lua
 
 workflow for this library:
