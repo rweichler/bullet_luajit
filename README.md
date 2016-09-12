@@ -88,8 +88,8 @@ dynamics_world:removeRigidBody(body)
 -- btRigidBody::getMotionState
 local motion_state = body:getMotionState()
 -- btRigidBody::getCenterOfMassTransform
-local ang = ffi.new('float[3]')
-local pos = ffi.new('float[3]')
+local ang = ffi.new('float[4]') -- quat
+local pos = ffi.new('float[3]') -- vec3
 body:getCenterOfMassTransform(ang, pos)
 ```
 
