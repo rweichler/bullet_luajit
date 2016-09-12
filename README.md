@@ -67,7 +67,7 @@ void btRigidBody_getCenterOfMassTransform(btRigidBody *self, float *ang, float *
 }
 ```
 
-Note how, in the third one, I didn't return the btTransform. Implementing C *and* LuaJIT bindings for Bullet's math library would be a pain, so I just use simple `float *`'s.
+Note how, in the fourth one, I didn't return the btTransform. Implementing C *and* LuaJIT bindings for Bullet's math library would be a pain, so I just use simple `float *`'s.
 
 and you would put it in bullet.lua as:
 ```c
