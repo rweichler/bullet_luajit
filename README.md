@@ -40,7 +40,7 @@ basically you just write whatever functions you want to wrap in bullet\_wrapper.
 
 Honestly, if you want good examples, just look at bullet\_wrapper.cpp and bullet.lua. But if you need more explanation then here you go:
 
-These are the three functions
+Let's say you want to wrap these four functions:
 
 ```cpp
 bool btCollisionShape::isConvex();
@@ -49,8 +49,8 @@ btMotionState * btRigidBody::getMotionState();
 btTransform btRigidBody::getCenterOfMassTransform();
 ```
 
-you would write it in C as:
-```c
+you would write it in bullet\_wrapper.cpp as:
+```cpp
 bool btCollisionShape_isConvex(btCollisionShape *self) {
     return self->isConvex();
 }
@@ -101,7 +101,7 @@ btBoxShape *shape = new btBoxShape(halfExtents);
 ```
 
 write this in bullet\_wrapper.cpp:
-```c
+```cpp
 btBoxShape * btBoxShape_create(float *halfExtents) {
     btVector3 tmp = VEC3(halfExtents);
     return new btBoxShape(tmp);
