@@ -34,7 +34,7 @@ This will create a file bullet.so that you can use in conjunction with bullet.lu
 
 workflow for this library:
 
-basically you just write whatever functions you want to wrap in wrapper.cpp, and then put a slightly modified decl in bullet.lua
+basically you just write whatever functions you want to wrap in bullet\_wrapper.cpp, and then put a slightly modified decl in bullet.lua
 
 ## Examples
 
