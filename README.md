@@ -115,7 +115,7 @@ btBoxShape * btBoxShape_create(float *halfExtents);
 
 note: it has to have _create at the end.
 
-Then, you'll have to define the class at the top:
+Then, you'll have to define the class at the top of bullet.lua:
 ```lua
 bt.BoxShape = {}
 -- or, if it has a superclass
