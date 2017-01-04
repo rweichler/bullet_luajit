@@ -97,6 +97,7 @@ body:getCenterOfMassTransform(ang, pos)
 
 Let's say you want to recreate this:
 ```cpp
+float halfExtents[] = { 2, 2, 2 };
 btBoxShape *shape = new btBoxShape(halfExtents);
 ```
 
