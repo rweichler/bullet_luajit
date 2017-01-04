@@ -1,6 +1,6 @@
 # LuaJIT bindings for bullet 2.83.7
 
-NOTE: this is *not* complete. since it is written in C++ instead of C, i need to manually wrap each method in C. it's a huge work in progress.
+NOTE: this is *not* complete. since it is written in C++ instead of C, i need to manually wrap each method in C. it's a huge work in progress. but, for my purposes it's everything i need.
 
 i stripped out the build system and most of bullet3, because i need a unified shared lib
 
